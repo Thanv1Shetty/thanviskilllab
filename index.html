@@ -1,66 +1,196 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>PlacementPro</title>
+    <title>SmartShop</title>
     <style>
         body {
             font-family: Arial;
-            background-color: #f4f6f9;
+            margin: 0;
+            background: #f4f6f9;
+            transition: 0.3s;
+        }
+
+        header {
+            background: #222;
+            color: white;
+            padding: 15px;
             text-align: center;
         }
 
-        .container {
-            margin-top: 50px;
+        .controls {
+            text-align: center;
+            padding: 15px;
         }
 
-        .card {
-            width: 300px;
-            margin: 20px auto;
-            padding: 15px;
-            background: white;
-            box-shadow: 0px 0px 10px gray;
-            border-radius: 8px;
+        input, select {
+            padding: 8px;
+            margin: 5px;
         }
 
         button {
-            padding: 8px 15px;
-            background: blue;
+            padding: 8px 12px;
+            background: #007bff;
             color: white;
             border: none;
             cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .products, .cart {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .card {
+            background: white;
+            width: 200px;
+            margin: 10px;
+            padding: 10px;
+            box-shadow: 0px 0px 8px gray;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .dark {
+            background: #121212;
+            color: white;
+        }
+
+        .dark .card {
+            background: #1e1e1e;
+            color: white;
+        }
+
+        .total {
+            text-align: center;
+            font-size: 18px;
+            margin: 15px;
         }
     </style>
 </head>
 
 <body>
 
-    <h2>PlacementPro</h2>
+<header>
+    <h2>🛍 SmartShop</h2>
+    <button onclick="toggleMode()">Toggle Dark Mode</button>
+</header>
 
-    <div class="container">
-        <button onclick="renderStudent()">Render Student</button>
+<div class="controls">
+    <input type="text" id="search" placeholder="Search product..." onkeyup="renderProducts()">
+    <select id="category" onchange="renderProducts()">
+        <option value="All">All</option>
+        <option value="Electronics">Electronics</option>
+        <option value="Clothing">Clothing</option>
+    </select>
+</div>
 
-        <div id="output"></div>
-    </div>
+<h3 style="text-align:center;">Products</h3>
+<div class="products" id="productList"></div>
 
-    <script>
-        function renderStudent() {
-            const student = {
-                name: "Thanvi",
-                branch: "AIML",
-                cgpa: 9.1
-            };
+<h3 style="text-align:center;">Cart</h3>
+<div class="cart" id="cartList"></div>
+<div class="total" id="totalPrice">Total: ₹0</div>
 
-            const htmlContent = `
-                <div class="card">
-                    <h3>${student.name}</h3>
-                    <p>Branch: ${student.branch}</p>
-                    <p>CGPA: ${student.cgpa}</p>
-                </div>
-            `;
+<script>
 
-            document.getElementById("output").innerHTML = htmlContent;
-        }
-    </script>
+let products = [
+    {id:1, name:"Headphones", price:1500, category:"Electronics"},
+    {id:2, name:"T-Shirt", price:700, category:"Clothing"},
+    {id:3, name:"Smartphone", price:15000, category:"Electronics"},
+    {id:4, name:"Jeans", price:1200, category:"Clothing"},
+];
+
+let cart = [];
+
+function renderProducts() {
+    let search = document.getElementById("search").value.toLowerCase();
+    let category = document.getElementById("category").value;
+
+    let filtered = products.filter(p =>
+        (p.name.toLowerCase().includes(search)) &&
+        (category === "All" || p.category === category)
+    );
+
+    let html = "";
+    filtered.forEach(p => {
+        html += `
+            <div class="card">
+                <h4>${p.name}</h4>
+                <p>₹${p.price}</p>
+                <button onclick="addToCart(${p.id})">Add to Cart</button>
+            </div>
+        `;
+    });
+
+    document.getElementById("productList").innerHTML = html;
+}
+
+function addToCart(id) {
+    let item = products.find(p => p.id === id);
+    let existing = cart.find(c => c.id === id);
+
+    if(existing){
+        existing.qty++;
+    } else {
+        cart.push({...item, qty:1});
+    }
+
+    renderCart();
+}
+
+function renderCart() {
+    let html = "";
+    let total = 0;
+
+    cart.forEach(c => {
+        total += c.price * c.qty;
+        html += `
+            <div class="card">
+                <h4>${c.name}</h4>
+                <p>₹${c.price} x ${c.qty}</p>
+                <button onclick="increase(${c.id})">+</button>
+                <button onclick="decrease(${c.id})">-</button>
+                <button onclick="removeItem(${c.id})">Remove</button>
+            </div>
+        `;
+    });
+
+    document.getElementById("cartList").innerHTML = html;
+    document.getElementById("totalPrice").innerText = "Total: ₹" + total;
+}
+
+function increase(id){
+    let item = cart.find(c => c.id === id);
+    item.qty++;
+    renderCart();
+}
+
+function decrease(id){
+    let item = cart.find(c => c.id === id);
+    if(item.qty > 1){
+        item.qty--;
+    }
+    renderCart();
+}
+
+function removeItem(id){
+    cart = cart.filter(c => c.id !== id);
+    renderCart();
+}
+
+function toggleMode(){
+    document.body.classList.toggle("dark");
+}
+
+renderProducts();
+
+</script>
 
 </body>
 </html>
